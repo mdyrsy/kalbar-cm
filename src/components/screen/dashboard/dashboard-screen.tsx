@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import DashboardHeader from './dashboard-header'
 import {
+  Briefcase,
   Layers,
   Landmark,
   Building2,
@@ -11,7 +12,7 @@ import {
 } from 'lucide-react'
 
 type SegmentStat = {
-  segment: string
+  segment: 'government_service' | 'business_service' | 'enterprise_service'
   count_contract: number
   sum_contract_value: number
 }
@@ -24,14 +25,29 @@ type StatsResponse = {
   per_segment: SegmentStat[]
 }
 
-const SEGMENT_META: Record<
-  'government_service' | 'business_service' | 'enterprise_service',
-  { label: string; icon: any }
-> = {
-  government_service: { label: 'Government', icon: Landmark },
-  business_service: { label: 'Business', icon: Building2 },
-  enterprise_service: { label: 'Enterprise', icon: Layers },
-}
+const SEGMENT_META = {
+  government_service: {
+    label: 'Government',
+    icon: Landmark,
+  },
+  business_service: {
+    label: 'Business',
+    icon: Building2,
+  },
+  enterprise_service: {
+    label: 'Enterprise',
+    icon: Layers,
+  },
+} as const
+
+const SEGMENT_BADGE = {
+  government_service:
+    'bg-blue-100 text-blue-800 border border-blue-200',
+  business_service:
+    'bg-emerald-100 text-emerald-800 border border-emerald-200',
+  enterprise_service:
+    'bg-purple-100 text-purple-800 border border-purple-200',
+} as const
 
 const MONTHS = [
   { value: '', label: 'Semua Bulan' },
@@ -52,8 +68,7 @@ const MONTHS = [
 export default function DashboardScreen() {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState<string>('')
-
+  const [month, setMonth] = useState('')
   const [stats, setStats] = useState<StatsResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -71,11 +86,17 @@ export default function DashboardScreen() {
       .finally(() => setLoading(false))
   }, [year, month])
 
-  const segments = Object.keys(SEGMENT_META).map(seg => {
-    const found = stats?.per_segment.find(s => s.segment === seg)
+  const segments = (
+    Object.keys(SEGMENT_META) as Array<
+      keyof typeof SEGMENT_META
+    >
+  ).map(segment => {
+    const found = stats?.per_segment.find(
+      s => s.segment === segment
+    )
 
     return {
-      segment: seg,
+      segment,
       count_contract: found?.count_contract ?? 0,
       sum_contract_value: found?.sum_contract_value ?? 0,
     }
@@ -85,6 +106,7 @@ export default function DashboardScreen() {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <DashboardHeader />
 
+      {/* FILTER */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3 text-sm font-semibold text-gray-600">
           <Calendar size={18} />
@@ -95,7 +117,7 @@ export default function DashboardScreen() {
           <select
             value={month}
             onChange={e => setMonth(e.target.value)}
-            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20"
+            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-900/20"
           >
             {MONTHS.map(m => (
               <option key={m.label} value={m.value}>
@@ -107,7 +129,7 @@ export default function DashboardScreen() {
           <select
             value={year}
             onChange={e => setYear(Number(e.target.value))}
-            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20"
+            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-900/20"
           >
             {Array.from({ length: 6 }).map((_, i) => {
               const y = now.getFullYear() - i
@@ -121,9 +143,12 @@ export default function DashboardScreen() {
         </div>
       </div>
 
+      {/* SUMMARY */}
       <div className="grid gap-6 sm:grid-cols-2">
         <div className="rounded-3xl bg-gradient-to-br from-blue-900 to-blue-700 p-6 text-white shadow-xl">
-          <p className="text-xs uppercase opacity-80">Total Kontrak</p>
+          <p className="text-xs uppercase opacity-80">
+            Total Kontrak
+          </p>
           <p className="mt-2 text-4xl font-extrabold">
             {loading ? '-' : stats?.total.count_contract}
           </p>
@@ -143,11 +168,10 @@ export default function DashboardScreen() {
         </div>
       </div>
 
+      {/* SEGMENT CARDS */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {segments.map(seg => {
-          const meta = SEGMENT_META[
-            seg.segment as keyof typeof SEGMENT_META
-          ]
+          const meta = SEGMENT_META[seg.segment]
           const Icon = meta.icon
 
           return (
@@ -155,24 +179,36 @@ export default function DashboardScreen() {
               key={seg.segment}
               className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-lg"
             >
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-[#1C2A55]">
-                  <Icon size={24} />
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-[#1C2A55]">
+                    <Icon size={24} />
+                  </div>
+
+                  <div>
+                    <p className="text-xl font-extrabold text-[#1C2A55]">
+                      {seg.count_contract} Kontrak
+                    </p>
+                    <p className="text-xs font-semibold text-gray-400">
+                      Total Kontrak
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase text-gray-400">
-                    {meta.label}
-                  </p>
-                  <p className="text-xl font-extrabold text-[#1C2A55]">
-                    {seg.count_contract} Kontrak
-                  </p>
-                </div>
+
+                <span
+                  className={`rounded-full px-3 py-1 text-[11px] font-bold ${SEGMENT_BADGE[seg.segment]}`}
+                >
+                  {meta.label}
+                </span>
               </div>
 
-              <div className="mt-4 text-sm font-semibold text-gray-600">
+              <div className="mt-5 text-sm font-semibold text-gray-600">
                 Nilai:{' '}
                 <span className="text-[#1C2A55]">
-                  Rp {seg.sum_contract_value.toLocaleString('id-ID')}
+                  Rp{' '}
+                  {seg.sum_contract_value.toLocaleString(
+                    'id-ID'
+                  )}
                 </span>
               </div>
             </div>
