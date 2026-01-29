@@ -131,7 +131,7 @@ export default function ContractsScreen() {
       const [svcRes, typeRes, progRes, userRes] = await Promise.all([
         fetch('/api/services?limit=100').then(r => r.ok ? r.json() : { data: [] }),
         fetch('/api/contract-types?limit=100').then(r => r.ok ? r.json() : { data: [] }),
-        fetch('/api/contract-progress?limit=100').then(r => r.ok ? r.json() : { data: [] }),
+        fetch('/api/contract-progresses?limit=100').then(r => r.ok ? r.json() : { data: [] }),
         fetch('/api/users?limit=100').then(r => r.ok ? r.json() : { data: [] })
       ])
 
