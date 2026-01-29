@@ -15,8 +15,7 @@ import {
   Layers,
   MoreVertical,
   User,
-  AlertTriangle,
-  BarChart3
+  AlertTriangle
 } from 'lucide-react'
 import { useToast } from '@/components/ui/toast-provider'
 
@@ -47,7 +46,7 @@ export function Sidebar() {
   const [userData, setUserData] = useState<{ name: string, email: string } | null>(null)
   
   const [isMounted, setIsMounted] = useState(false)
-  const [openMenus, setOpenMenus] = useState<string[]>(['Dashboard', 'Pengguna'])
+  const [openMenus, setOpenMenus] = useState<string[]>(['Dashboard', 'Kontrak'])
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
 
@@ -85,11 +84,6 @@ export function Sidebar() {
     }
   }, [])
 
-  const formatSegment = (seg: string | null) => {
-    if (!seg) return '-'
-    return seg.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-  }
-
   const handleLogoutClick = () => {
     setIsProfileMenuOpen(false)
     setIsLogoutModalOpen(true)
@@ -120,23 +114,24 @@ export function Sidebar() {
       allowedRoles: ['all'],
       submenu: [
         { title: 'Overview', href: '/dashboard', allowedRoles: ['all'] },
-        { title: 'Government', href: '/dashboard/government', allowedRoles: ['super_admin'], allowedSegments: ['government_service'] },
-        { title: 'Enterprise', href: '/dashboard/enterprise', allowedRoles: ['super_admin'], allowedSegments: ['enterprise_service'] },
-        { title: 'Business', href: '/dashboard/business', allowedRoles: ['super_admin'], allowedSegments: ['business_service'] },
       ]
     },
     {
       title: 'Kontrak',
-      href: '/dashboard/contracts',
       icon: FileText,
-      allowedRoles: ['all']
+      allowedRoles: ['all'],
+      submenu: [
+        { title: 'Daftar Kontrak', href: '/dashboard/contracts' },
+        { title: 'Tipe Kontrak', href: '/dashboard/contract-types' },
+        { title: 'Progress Kontrak', href: '/dashboard/contract-progress' },
+      ]
     },
     {
       title: 'Layanan',
       icon: Layers,
       allowedRoles: ['super_admin'],
       submenu: [
-        { title: 'Tipe Layanan', href: '/dashboard/service-type' },
+        { title: 'Tipe Layanan', href: '/dashboard/service-types' },
         { title: 'Daftar Layanan', href: '/dashboard/services' },
       ]
     },
@@ -152,10 +147,10 @@ export function Sidebar() {
   ]
 
   const segmentBadges = [
-    { id: 'government_service', label: 'GOV', activeClass: 'bg-blue-50 text-blue-600 border-blue-200' },
-    { id: 'enterprise_service', label: 'ENT', activeClass: 'bg-purple-50 text-purple-600 border-purple-200' },
-    { id: 'business_service', label: 'BIS', activeClass: 'bg-amber-50 text-amber-600 border-amber-200' },
-    { id: 'PRQ', label: 'PRQ', activeClass: 'bg-red-50 text-red-600 border-red-200' },
+    { id: 'government_service', label: 'GOV', activeClass: 'bg-blue-50 text-blue-700 border-blue-200 ring-blue-100' },
+    { id: 'enterprise_service', label: 'ENT', activeClass: 'bg-purple-50 text-purple-700 border-purple-200 ring-purple-100' },
+    { id: 'business_service', label: 'BIS', activeClass: 'bg-amber-50 text-amber-700 border-amber-200 ring-amber-100' },
+    { id: 'PRQ', label: 'PRQ', activeClass: 'bg-red-50 text-red-700 border-red-200 ring-red-100' },
   ]
 
   const renderMenu = () => {
@@ -183,23 +178,26 @@ export function Sidebar() {
             <button
               onClick={() => toggleMenu(item.title)}
               className={`
-                group flex w-full items-center justify-between rounded-md px-3 py-2 text-[13px] font-medium transition-all
-                ${isActiveParent || isOpen ? 'bg-gray-50 text-[#1C2A55] font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-[#1C2A55]'}
+                group flex w-full items-center justify-between rounded-xl px-4 py-3 text-[13px] font-medium transition-all duration-300
+                ${isActiveParent || isOpen ? 'bg-gray-50 text-[#1C2A55] font-bold shadow-sm' : 'text-gray-500 hover:bg-gray-50/80 hover:text-[#1C2A55]'}
               `}
             >
               <div className="flex items-center">
-                <item.icon size={16} className={isActiveParent ? 'text-[#1C2A55]' : 'text-gray-400 group-hover:text-[#1C2A55]'} />
-                <span className="ml-3">{item.title}</span>
+                <item.icon size={18} className={`transition-colors duration-300 ${isActiveParent ? 'text-[#1C2A55]' : 'text-gray-400 group-hover:text-[#1C2A55]'}`} />
+                <span className="ml-3.5 tracking-wide">{item.title}</span>
               </div>
-              <ChevronDown size={13} className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-              <ul className="mt-1 space-y-0.5 pl-8 pr-2">
+              <ul className="mt-1 space-y-1 pl-4 pr-2">
                 {visibleSubmenu.map((sub, subIndex) => {
                   const isSubActive = pathname === sub.href;
                   return (
                     <li key={subIndex}>
-                      <Link href={sub.href} className={`block rounded-md py-1.5 pl-3 text-[12px] font-medium transition-colors ${isSubActive ? 'bg-[#1C2A55]/5 text-[#DA061A] border-l-2 border-[#DA061A]' : 'text-gray-500 hover:text-[#1C2A55] border-l-2 border-transparent'}`}>
+                      <Link href={sub.href} className={`relative flex items-center rounded-lg py-2 pl-9 text-[12px] font-medium transition-all duration-300 ${isSubActive ? 'bg-[#1C2A55]/5 text-[#DA061A]' : 'text-gray-500 hover:text-[#1C2A55] hover:bg-gray-50'}`}>
+                        {isSubActive && (
+                          <div className="absolute left-4 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-[#DA061A]" />
+                        )}
                         {sub.title}
                       </Link>
                     </li>
@@ -214,11 +212,11 @@ export function Sidebar() {
       const isActive = pathname === item.href
       return (
         <li key={index}>
-          <Link href={item.href || '#'} className={`group relative flex items-center rounded-md px-3 py-2 text-[13px] font-medium transition-all duration-200 ease-in-out ${isActive ? 'bg-[#1C2A55] text-white shadow-md shadow-[#1C2A55]/20 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-[#1C2A55]'}`}>
-            {isActive && <div className="absolute left-0 top-1/2 h-4 w-1 -translate-y-1/2 rounded-r-full bg-[#DA061A]" />}
-            <item.icon size={16} strokeWidth={isActive ? 2.5 : 2} className={`transition-colors duration-200 ${isActive ? 'text-[#DA061A]' : 'text-gray-400 group-hover:text-[#1C2A55]'}`} />
-            <span className="ml-3 flex-1">{item.title}</span>
-            {isActive && <ChevronRight size={13} className="text-white/40" />}
+          <Link href={item.href || '#'} className={`group relative flex items-center rounded-xl px-4 py-3 text-[13px] font-medium transition-all duration-300 ease-in-out ${isActive ? 'bg-[#1C2A55] text-white shadow-lg shadow-[#1C2A55]/20 font-bold' : 'text-gray-500 hover:bg-gray-50/80 hover:text-[#1C2A55]'}`}>
+            {isActive && <div className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-[#DA061A]" />}
+            <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} className={`transition-colors duration-300 ${isActive ? 'text-[#DA061A]' : 'text-gray-400 group-hover:text-[#1C2A55]'}`} />
+            <span className="ml-3.5 flex-1 tracking-wide">{item.title}</span>
+            {isActive && <ChevronRight size={14} className="text-white/40" />}
           </Link>
         </li>
       )
@@ -229,72 +227,76 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="fixed left-0 top-0 z-40 flex h-screen w-60 flex-col border-r border-gray-100 bg-white shadow-xl shadow-blue-900/5 transition-all duration-300 font-sans">
-        <div className="flex-none px-4 pt-6 pb-2">
+      <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-gray-100 bg-white/90 backdrop-blur-sm shadow-2xl shadow-blue-900/5 transition-all duration-300 font-sans">
+        
+        <div className="flex-none px-6 pt-10 pb-8">
           <div className="flex flex-col items-center">
-            <div className="relative mb-2 h-14 w-auto">
+            <div className="relative mb-5 h-16 w-auto transition-transform duration-300 hover:scale-105">
                <Image 
                  src="/kapuas.png" 
                  alt="Logo Kapuas" 
-                 width={50} 
-                 height={50} 
-                 className="object-contain"
+                 width={60} 
+                 height={60} 
+                 className="object-contain drop-shadow-md"
                  priority
                />
             </div>
             
-            <h1 className="text-sm font-bold tracking-tight text-[#1C2A55] uppercase text-center leading-tight">
-              Kontrak Manajemen
-            </h1>
+            <div className="text-center space-y-0.5">
+              <h1 className="text-sm font-black tracking-widest text-[#1C2A55] uppercase leading-tight">
+                Kontrak
+              </h1>
+              <h2 className="text-xs font-bold tracking-widest text-[#DA061A] uppercase leading-tight">
+                Manajemen
+              </h2>
+            </div>
 
-            <div className="mt-3 flex w-full flex-wrap justify-center gap-1">
+            {/* Segment Badges */}
+            <div className="mt-6 grid w-full grid-cols-4 gap-2 px-1">
               {segmentBadges.map((badge) => {
                 const isActive = userSegment === badge.id;
-                
                 return (
-                  <span 
+                  <div 
                     key={badge.id}
                     className={`
-                      flex items-center justify-center rounded px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-all duration-300
+                      flex h-7 items-center justify-center rounded-lg text-[9px] font-bold transition-all duration-300 border
                       ${isActive 
-                        ? `${badge.activeClass} shadow-sm ring-1 ring-black/5` 
-                        : 'border border-gray-100 bg-white text-gray-300'}
+                        ? `${badge.activeClass} shadow-md ring-2 ring-offset-1 scale-105` 
+                        : 'border-gray-100 bg-gray-50 text-gray-300'}
                     `}
                   >
                     {badge.label}
-                  </span>
+                  </div>
                 )
               })}
             </div>
 
-            <div className="mt-4 w-full border-t border-gray-100"></div>
+            <div className="mt-8 w-full border-t border-dashed border-gray-200"></div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 py-2 scrollbar-hide">
-          <ul className="space-y-0.5 pb-4">
+        <div className="flex-1 overflow-y-auto px-4 py-2 scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-transparent">
+          <ul className="space-y-2 pb-6">
             {renderMenu()}
           </ul>
         </div>
 
-        <div className="flex-none px-3 py-3 border-t border-gray-50 bg-white">
+        <div className="flex-none px-4 py-4 border-t border-gray-100 bg-white">
           <div className="relative" ref={profileRef}>
-            
             {isProfileMenuOpen && (
-              <div className="absolute bottom-full left-0 mb-2 w-full animate-in slide-in-from-bottom-2 fade-in duration-200">
-                <div className="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-lg shadow-blue-900/10">
-                  <div className="p-1">
-                    <Link href="/dashboard/profile" className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-[12px] font-medium text-gray-600 hover:bg-gray-50 hover:text-[#1C2A55]">
-                      <User size={14} />
+              <div className="absolute bottom-full left-0 mb-3 w-full animate-in slide-in-from-bottom-2 fade-in duration-200 z-50">
+                <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl shadow-blue-900/10 ring-1 ring-gray-50">
+                  <div className="p-1.5 space-y-0.5">
+                    <Link href="/dashboard/profile" className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[12px] font-medium text-gray-600 hover:bg-gray-50 hover:text-[#1C2A55] transition-colors">
+                      <User size={15} />
                       Profil Saya
                     </Link>
-                    
-                    <div className="my-1 h-px bg-gray-100" />
+                    <div className="h-px bg-gray-100 mx-2" />
                     <button 
                       onClick={handleLogoutClick}
-                      className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-[12px] font-medium text-red-500 hover:bg-red-50"
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[12px] font-medium text-red-500 hover:bg-red-50 transition-colors"
                     >
-                      <LogOut size={14} />
+                      <LogOut size={15} />
                       Keluar
                     </button>
                   </div>
@@ -305,51 +307,51 @@ export function Sidebar() {
             <button 
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
               className={`
-                group relative flex w-full items-center gap-2.5 overflow-hidden rounded-lg border p-2 text-left transition-all duration-200
-                ${isProfileMenuOpen ? 'border-[#1C2A55] bg-[#1C2A55]/5' : 'border-gray-100 bg-[#FAFAFA] hover:border-gray-200 hover:bg-gray-50'}
+                group relative flex w-full items-center gap-3 overflow-hidden rounded-xl border p-2.5 text-left transition-all duration-300
+                ${isProfileMenuOpen ? 'border-[#1C2A55] bg-[#1C2A55]/5 ring-2 ring-[#1C2A55]/10' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white hover:shadow-sm'}
               `}
             >
-               <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${userRole === 'super_admin' ? 'border-[#DA061A]/20 bg-[#DA061A]/10 text-[#DA061A]' : 'border-blue-200 bg-blue-50 text-blue-600'}`}>
-                  <ShieldCheck size={14} />
+               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border shadow-sm transition-all duration-300 ${userRole === 'super_admin' ? 'border-[#DA061A]/20 bg-[#DA061A]/10 text-[#DA061A]' : 'border-blue-200 bg-blue-50 text-blue-600'}`}>
+                  <ShieldCheck size={16} strokeWidth={2.5} />
                </div>
                
                <div className="min-w-0 flex-1">
                  <p className="truncate text-[12px] font-bold text-[#1C2A55]">
                    {userData?.name}
                  </p>
-                 <p className="truncate text-[10px] text-gray-400">
+                 <p className="truncate text-[10px] font-medium text-gray-400 group-hover:text-gray-500">
                    {userData?.email}
                  </p>
                </div>
 
-               <MoreVertical size={12} className="text-gray-400 group-hover:text-[#1C2A55]" />
+               <MoreVertical size={14} className="text-gray-400 transition-colors group-hover:text-[#1C2A55]" />
             </button>
           </div>
         </div>
       </aside>
 
       {isLogoutModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1C2A55]/40 p-4 backdrop-blur-sm transition-all animate-in fade-in duration-200">
-          <div className="w-full max-w-xs overflow-hidden rounded-xl bg-white shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="p-4 text-center">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-[#DA061A]">
-                <AlertTriangle size={20} strokeWidth={2} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1C2A55]/60 p-4 backdrop-blur-sm transition-all animate-in fade-in duration-300">
+          <div className="w-full max-w-xs overflow-hidden rounded-2xl bg-white shadow-2xl animate-in zoom-in-95 duration-200 ring-1 ring-white/20">
+            <div className="p-6 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-[#DA061A] ring-4 ring-red-50">
+                <AlertTriangle size={24} strokeWidth={2.5} />
               </div>
-              <h3 className="text-base font-bold text-[#1C2A55]">Konfirmasi Keluar</h3>
-              <p className="mt-1 text-xs text-gray-500">
-                Apakah Anda yakin ingin mengakhiri sesi ini?
+              <h3 className="text-lg font-bold text-[#1C2A55]">Konfirmasi Keluar</h3>
+              <p className="mt-2 text-xs font-medium text-gray-500 leading-relaxed">
+                Apakah Anda yakin ingin mengakhiri sesi ini? Anda harus login kembali untuk mengakses dashboard.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2">
+            <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4">
               <button
                 onClick={() => setIsLogoutModalOpen(false)}
-                className="rounded-lg border border-gray-200 bg-white py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50 hover:text-[#1C2A55]"
+                className="rounded-xl border border-gray-200 bg-white py-2.5 text-xs font-bold text-gray-600 transition-all hover:bg-gray-100 hover:text-[#1C2A55] active:scale-95"
               >
                 Batal
               </button>
               <button
                 onClick={confirmLogout}
-                className="rounded-lg bg-[#DA061A] py-2 text-xs font-semibold text-white shadow-md shadow-red-900/20 transition-all hover:bg-red-700 active:scale-95"
+                className="rounded-xl bg-[#DA061A] py-2.5 text-xs font-bold text-white shadow-lg shadow-red-900/20 transition-all hover:bg-red-700 active:scale-95"
               >
                 Ya, Keluar
               </button>

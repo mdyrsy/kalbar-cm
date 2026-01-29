@@ -92,13 +92,3 @@ export interface ContractLink {
   is_primary: boolean;
   created_at: Timestamp;
 }
-
-export interface ContractTimeseries {
-  id: UUID;
-  year: number;
-  total_contract: number;
-  total_activity: number;
-  total_expired: number;
-  total_value: number;
-  created_at: Timestamp;
-}
