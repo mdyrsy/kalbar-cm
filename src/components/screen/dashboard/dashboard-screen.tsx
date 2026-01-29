@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import DashboardHeader from './dashboard-header'
 import {
-  Briefcase,
   Layers,
   Landmark,
   Building2,
@@ -26,13 +25,12 @@ type StatsResponse = {
 }
 
 const SEGMENT_META: Record<
-  string,
+  'government_service' | 'business_service' | 'enterprise_service',
   { label: string; icon: any }
 > = {
   government_service: { label: 'Government', icon: Landmark },
   business_service: { label: 'Business', icon: Building2 },
   enterprise_service: { label: 'Enterprise', icon: Layers },
-  PRQ: { label: 'PRQ', icon: Briefcase },
 }
 
 const MONTHS = [
@@ -55,11 +53,13 @@ export default function DashboardScreen() {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState<string>('')
+
   const [stats, setStats] = useState<StatsResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
+
     const params = new URLSearchParams({
       year: year.toString(),
       ...(month && { month }),
@@ -70,6 +70,16 @@ export default function DashboardScreen() {
       .then(data => setStats(data))
       .finally(() => setLoading(false))
   }, [year, month])
+
+  const segments = Object.keys(SEGMENT_META).map(seg => {
+    const found = stats?.per_segment.find(s => s.segment === seg)
+
+    return {
+      segment: seg,
+      count_contract: found?.count_contract ?? 0,
+      sum_contract_value: found?.sum_contract_value ?? 0,
+    }
+  })
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -85,7 +95,7 @@ export default function DashboardScreen() {
           <select
             value={month}
             onChange={e => setMonth(e.target.value)}
-            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20"
+            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20"
           >
             {MONTHS.map(m => (
               <option key={m.label} value={m.value}>
@@ -97,7 +107,7 @@ export default function DashboardScreen() {
           <select
             value={year}
             onChange={e => setYear(Number(e.target.value))}
-            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20"
+            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20"
           >
             {Array.from({ length: 6 }).map((_, i) => {
               const y = now.getFullYear() - i
@@ -111,44 +121,35 @@ export default function DashboardScreen() {
         </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-2">
         <div className="rounded-3xl bg-gradient-to-br from-blue-900 to-blue-700 p-6 text-white shadow-xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase opacity-80">
-                Total Kontrak
-              </p>
-              <p className="mt-2 text-4xl font-extrabold">
-                {loading ? '-' : stats?.total.count_contract}
-              </p>
-            </div>
-            <TrendingUp className="h-12 w-12 opacity-80" />
-          </div>
+          <p className="text-xs uppercase opacity-80">Total Kontrak</p>
+          <p className="mt-2 text-4xl font-extrabold">
+            {loading ? '-' : stats?.total.count_contract}
+          </p>
         </div>
 
         <div className="rounded-3xl bg-gradient-to-br from-emerald-700 to-emerald-500 p-6 text-white shadow-xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase opacity-80">
-                Total Nilai Kontrak
-              </p>
-              <p className="mt-2 text-2xl font-extrabold">
-                {loading
-                  ? '-'
-                  : `Rp ${stats?.total.sum_contract_value.toLocaleString(
-                      'id-ID'
-                    )}`}
-              </p>
-            </div>
-            <Briefcase className="h-12 w-12 opacity-80" />
-          </div>
+          <p className="text-xs uppercase opacity-80">
+            Total Nilai Kontrak
+          </p>
+          <p className="mt-2 text-2xl font-extrabold">
+            {loading
+              ? '-'
+              : `Rp ${stats?.total.sum_contract_value.toLocaleString(
+                  'id-ID'
+                )}`}
+          </p>
         </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {stats?.per_segment.map(seg => {
-          const meta = SEGMENT_META[seg.segment]
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {segments.map(seg => {
+          const meta = SEGMENT_META[
+            seg.segment as keyof typeof SEGMENT_META
+          ]
           const Icon = meta.icon
+
           return (
             <div
               key={seg.segment}
@@ -167,13 +168,11 @@ export default function DashboardScreen() {
                   </p>
                 </div>
               </div>
+
               <div className="mt-4 text-sm font-semibold text-gray-600">
                 Nilai:{' '}
                 <span className="text-[#1C2A55]">
-                  Rp{' '}
-                  {seg.sum_contract_value.toLocaleString(
-                    'id-ID'
-                  )}
+                  Rp {seg.sum_contract_value.toLocaleString('id-ID')}
                 </span>
               </div>
             </div>
